@@ -1,6 +1,7 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useGameContext } from "@/lib/game-context";
 import { cn } from "@/lib/utils";
+import "@/lib/animations.css";
 
 export default function LetterGrid() {
   const { 
@@ -14,8 +15,23 @@ export default function LetterGrid() {
     findNextEmptyCell,
     puzzle
   } = useGameContext();
+  
+  // Track which cells have animation
+  const [animatingTile, setAnimatingTile] = useState<[number, number] | null>(null);
 
   const handleTileClick = (row: number, col: number) => {
+    // If the tile already has a letter and we're clicking on it,
+    // let's add the pop animation for visual feedback
+    if (grid[row][col].letter !== "") {
+      // Trigger animation
+      setAnimatingTile([row, col]);
+      
+      // Remove animation after it completes
+      setTimeout(() => {
+        setAnimatingTile(null);
+      }, 200);
+    }
+    
     selectCell(row, col);
   };
 
@@ -60,6 +76,14 @@ export default function LetterGrid() {
       if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
         updateTile(currentRow, currentCol, e.key.toUpperCase());
         
+        // Trigger animation on the tile
+        setAnimatingTile([currentRow, currentCol]);
+        
+        // Remove animation after it completes
+        setTimeout(() => {
+          setAnimatingTile(null);
+        }, 200); // Animation takes 150ms
+        
         // Auto-advance to next column in the same row if possible
         if (currentCol < 4) {
           selectCell(currentRow, currentCol + 1);
@@ -71,6 +95,14 @@ export default function LetterGrid() {
         if (nextEmptyCell) {
           const [row, col] = nextEmptyCell;
           updateTile(row, col, e.key.toUpperCase());
+          
+          // Trigger animation on the tile
+          setAnimatingTile([row, col]);
+          
+          // Remove animation after it completes
+          setTimeout(() => {
+            setAnimatingTile(null);
+          }, 200); // Animation takes 150ms
           
           // Auto-advance to next column in the same row if possible
           if (col < 4) {
@@ -122,7 +154,7 @@ export default function LetterGrid() {
         }
       }
     }
-  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell]);
+  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell, setAnimatingTile]);
 
   // Add keyboard event listener
   useEffect(() => {
@@ -149,7 +181,9 @@ export default function LetterGrid() {
                 : getCellColor(rowIndex, colIndex), // Apply color by row when no status set
               tile.status === "correct" ? "bg-[#6aaa64] border-[#6aaa64] text-white" : "",
               tile.status === "present" ? "bg-[#c9b458] border-[#c9b458] text-white" : "",
-              tile.status === "absent" ? "bg-[#787c7e] border-[#787c7e] text-white" : ""
+              tile.status === "absent" ? "bg-[#787c7e] border-[#787c7e] text-white" : "",
+              // Add animation when a tile is being updated
+              animatingTile && animatingTile[0] === rowIndex && animatingTile[1] === colIndex ? "animate-pop" : ""
             )}
             onClick={() => handleTileClick(rowIndex, colIndex)}
             data-row={rowIndex}
