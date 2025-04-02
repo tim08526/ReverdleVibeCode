@@ -13,6 +13,7 @@ export interface Hint {
   id: number;
   rowIndex: number;
   text: string;
+  answer: string;
 }
 
 export interface PuzzleData {
@@ -154,15 +155,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
       
       const data = await response.json();
       
-      // Update the grid with the results
+      // Don't update the grid with color results - leave the background colors as they are
+      // Just update letters if needed for consistency
       setGrid(prevGrid => {
         const newGrid = [...prevGrid];
         newGrid[rowIndex] = [...newGrid[rowIndex]];
         
         data.result.forEach((result: {letter: string, status: TileStatus}, index: number) => {
+          // Keep the same tile but ensure the letter is correct
           newGrid[rowIndex][index] = {
+            ...newGrid[rowIndex][index],
             letter: result.letter,
-            status: result.status
+            // Don't change the status - keep the pre-colored status
           };
         });
         

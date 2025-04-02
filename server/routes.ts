@@ -16,17 +16,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No active puzzle found" });
       }
       
-      // Return puzzle without answers for security
-      const safeHints = activePuzzle.hints.map(hint => ({
+      // Include answers in the response for the new UI pattern
+      const hints = activePuzzle.hints.map(hint => ({
         id: hint.id,
         rowIndex: hint.rowIndex,
-        text: hint.text
+        text: hint.text,
+        answer: hint.answer // Include answer for pre-coloring
       }));
       
       return res.json({
         id: activePuzzle.id,
         name: activePuzzle.name,
-        hints: safeHints
+        hints: hints
       });
     } catch (error) {
       console.error("Error fetching puzzle:", error);

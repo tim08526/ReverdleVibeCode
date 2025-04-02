@@ -19,59 +19,36 @@ export default function LetterGrid() {
     selectCell(row, col);
   };
 
-  // Function to determine cell color based on row and column to simulate a solved puzzle
+  // Function to determine cell color based on the correct solution
   const getCellColor = (rowIndex: number, colIndex: number) => {
     const tile = grid[rowIndex][colIndex];
     
-    // If the tile already has a status from user input, use that
-    if (tile.status === "correct") return "bg-[#6aaa64] border-[#6aaa64] text-white";
-    if (tile.status === "present") return "bg-[#c9b458] border-[#c9b458] text-white";
-    if (tile.status === "absent") return "bg-[#787c7e] border-[#787c7e] text-white";
-    
-    // Otherwise, simulate Wordle-style coloring based on position
-    // These patterns create a visually appealing puzzle appearance without spoiling the answers
-    
-    // Last row (solution row) - all correct
+    // Last row (solution row) - all correct since it's the solution
     if (puzzle?.hints && rowIndex === puzzle.hints.length - 1) {
       return "bg-[#6aaa64] border-[#6aaa64]";
     }
     
-    // For other rows, create a pattern based on position
-    // This simulates what the puzzle will look like when solved
-    // without giving away the actual answers
+    // Get the correct solution for checking (from the last row)
+    if (!puzzle?.hints) return "bg-muted border-muted-foreground/30";
     
-    // Pattern differs by row and column to create visual variety
-    if (rowIndex === 0) {
-      // First row pattern (3 correct, 2 present)
-      return colIndex % 2 === 0 ? "bg-[#6aaa64] border-[#6aaa64]" : "bg-[#c9b458] border-[#c9b458]";
-    } else if (rowIndex === 1) {
-      // Second row pattern (2 correct, 2 present, 1 absent)
-      if (colIndex === 0 || colIndex === 3) {
-        return "bg-[#6aaa64] border-[#6aaa64]";
-      } else if (colIndex === 1 || colIndex === 4) {
-        return "bg-[#c9b458] border-[#c9b458]";
-      } else {
-        return "bg-[#787c7e] border-[#787c7e]";
-      }
-    } else if (rowIndex === 2) {
-      // Third row pattern (1 correct, 3 present, 1 absent)
-      if (colIndex === 2) {
-        return "bg-[#6aaa64] border-[#6aaa64]";
-      } else if (colIndex === 0 || colIndex === 1 || colIndex === 4) {
-        return "bg-[#c9b458] border-[#c9b458]";
-      } else {
-        return "bg-[#787c7e] border-[#787c7e]";
-      }
-    } else if (rowIndex === 3) {
-      // Fourth row pattern (4 correct, 1 absent)
-      if (colIndex !== 1) {
-        return "bg-[#6aaa64] border-[#6aaa64]";
-      } else {
-        return "bg-[#787c7e] border-[#787c7e]";
-      }
+    const lastRowHint = puzzle.hints[puzzle.hints.length - 1];
+    const solution = lastRowHint.answer.toUpperCase();
+    
+    // Get the answer for current row
+    const currentRowHint = puzzle.hints[rowIndex];
+    const currentAnswer = currentRowHint.answer.toUpperCase();
+
+    // For each position, determine if the letter in the answer would be
+    // correct, present, or absent when compared to the final solution
+    if (currentAnswer[colIndex] === solution[colIndex]) {
+      // Letter is in correct position compared to solution
+      return "bg-[#6aaa64] border-[#6aaa64]";
+    } else if (solution.includes(currentAnswer[colIndex])) {
+      // Letter is present in solution but in wrong position
+      return "bg-[#c9b458] border-[#c9b458]";
     } else {
-      // Default for any other rows
-      return "bg-muted border-muted-foreground/30";
+      // Letter is not in solution
+      return "bg-[#787c7e] border-[#787c7e]";
     }
   };
 
