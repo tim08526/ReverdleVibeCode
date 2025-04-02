@@ -18,17 +18,27 @@ export default function LetterGrid() {
   
   // Track which cells have animation
   const [animatingTile, setAnimatingTile] = useState<[number, number] | null>(null);
+  
+  // Animation buffer to prevent overlapping animations
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const handleTileClick = (row: number, col: number) => {
+    // Don't process clicks while animation is running
+    if (isAnimating) return;
+    
     // If the tile already has a letter and we're clicking on it,
     // let's add the pop animation for visual feedback
     if (grid[row][col].letter !== "") {
+      // Mark as animating to prevent overlapping animations
+      setIsAnimating(true);
+      
       // Trigger animation
       setAnimatingTile([row, col]);
       
       // Remove animation after it completes
       setTimeout(() => {
         setAnimatingTile(null);
+        setIsAnimating(false);
       }, 200);
     }
     
@@ -71,43 +81,58 @@ export default function LetterGrid() {
   // Function to handle keyboard input
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Handle letter input
-    if (e.key.match(/^[a-zA-Z]$/) && e.key.length === 1) {
+    if (e.key.match(/^[a-zA-Z]$/) && e.key.length === 1 && !isAnimating) {
+      // If animation is in progress, ignore this input to prevent overlapping animations
+      
       // If a cell is selected, use that cell
       if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
+        // Mark as animating to prevent new keystrokes
+        setIsAnimating(true);
+        
         updateTile(currentRow, currentCol, e.key.toUpperCase());
         
         // Trigger animation on the tile
         setAnimatingTile([currentRow, currentCol]);
         
-        // Remove animation after it completes
+        // Remove animation after it completes and allow next input
         setTimeout(() => {
           setAnimatingTile(null);
+          setIsAnimating(false);
         }, 200); // Animation takes 150ms
         
-        // Auto-advance to next column in the same row if possible
-        if (currentCol < 4) {
-          selectCell(currentRow, currentCol + 1);
-        }
+        // Auto-advance to next column after a short delay to allow animation to complete
+        setTimeout(() => {
+          if (currentCol < 4) {
+            selectCell(currentRow, currentCol + 1);
+          }
+        }, 100); // Move cursor after animation is mostly done
       } 
       // Otherwise find the first empty cell
       else {
         const nextEmptyCell = findNextEmptyCell();
         if (nextEmptyCell) {
           const [row, col] = nextEmptyCell;
+          
+          // Mark as animating to prevent new keystrokes
+          setIsAnimating(true);
+          
           updateTile(row, col, e.key.toUpperCase());
           
           // Trigger animation on the tile
           setAnimatingTile([row, col]);
           
-          // Remove animation after it completes
+          // Remove animation after it completes and allow next input
           setTimeout(() => {
             setAnimatingTile(null);
+            setIsAnimating(false);
           }, 200); // Animation takes 150ms
           
-          // Auto-advance to next column in the same row if possible
-          if (col < 4) {
-            selectCell(row, col + 1);
-          }
+          // Auto-advance to next column after a short delay
+          setTimeout(() => {
+            if (col < 4) {
+              selectCell(row, col + 1);
+            }
+          }, 100); // Move cursor after animation is mostly done
         }
       }
     }
@@ -154,7 +179,7 @@ export default function LetterGrid() {
         }
       }
     }
-  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell, setAnimatingTile]);
+  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell, setAnimatingTile, isAnimating, setIsAnimating]);
 
   // Add keyboard event listener
   useEffect(() => {
