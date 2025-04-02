@@ -198,7 +198,7 @@ export default function LetterGrid() {
             className={cn(
               "tile aspect-square flex items-center justify-center text-2xl font-bold rounded transition-all duration-300 cursor-pointer",
               currentRow === rowIndex && currentCol === colIndex && !completedRows[rowIndex]
-                ? "border-4 border-primary"
+                ? "border-4 border-primary ring-2 ring-primary/40 ring-offset-1"
                 : "border-2",
               tile.letter !== "" ? "filled" : "text-transparent", // Make empty letters transparent
               (tile.status === "correct" || tile.status === "present" || tile.status === "absent") 
