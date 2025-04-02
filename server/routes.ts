@@ -34,6 +34,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get initial tile colors for the grid
+  app.get("/api/initial-colors", async (req, res) => {
+    try {
+      const activePuzzle = await storage.getActivePuzzle();
+      
+      if (!activePuzzle) {
+        return res.status(404).json({ message: "No active puzzle found" });
+      }
+      
+      // Get the solution word (from the last row)
+      const solutionHint = activePuzzle.hints[activePuzzle.hints.length - 1];
+      const solution = solutionHint.answer.toUpperCase();
+      
+      // Create initial colors for each cell
+      // We'll use an array of arrays where each inner array represents a row
+      // and each element in the inner array represents a cell with a color
+      const initialColors = Array(5).fill(null).map((_, rowIndex) => {
+        // Create a row of 5 cells with colors
+        // For now each cell will have a random color
+        return Array(5).fill(null).map((_, colIndex) => {
+          // Use math.random to determine the color
+          // 0.33 chance for each color: correct, present, absent
+          const random = Math.random();
+          
+          if (random < 0.33) {
+            return "correct";
+          } else if (random < 0.66) {
+            return "present";
+          } else {
+            return "absent";
+          }
+        });
+      });
+      
+      return res.json({
+        initialColors
+      });
+    } catch (error) {
+      console.error("Error getting initial colors:", error);
+      return res.status(500).json({ message: "Failed to get initial colors" });
+    }
+  });
+  
   // Check row answer endpoint
   const checkRowSchema = z.object({
     rowIndex: z.number().min(0).max(4),

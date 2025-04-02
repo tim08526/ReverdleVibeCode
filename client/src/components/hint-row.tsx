@@ -12,13 +12,18 @@ interface HintRowProps {
 
 export default function HintRow({ hint, showAll }: HintRowProps) {
   const [showHint, setShowHint] = useState(false);
-  const { currentRow, selectRow, completedRows } = useGameContext();
+  const { currentRow, selectCell, completedRows, findNextEmptyCell } = useGameContext();
   
   const isActive = currentRow === hint.rowIndex;
   const isCompleted = completedRows[hint.rowIndex];
   
   const handleClick = () => {
-    selectRow(hint.rowIndex);
+    // Find the first empty cell in this row or use the first cell
+    const nextEmptyCol = Array(5).findIndex((_,i) => findNextEmptyCell()?.[0] === hint.rowIndex && findNextEmptyCell()?.[1] === i);
+    const colToSelect = nextEmptyCol >= 0 ? nextEmptyCol : 0;
+    
+    // Select the appropriate cell in this row
+    selectCell(hint.rowIndex, colToSelect);
   };
   
   return (
