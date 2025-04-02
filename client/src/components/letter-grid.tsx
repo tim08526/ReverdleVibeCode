@@ -19,32 +19,59 @@ export default function LetterGrid() {
     selectCell(row, col);
   };
 
-  // Function to determine cell color based on row and column
+  // Function to determine cell color based on row and column to simulate a solved puzzle
   const getCellColor = (rowIndex: number, colIndex: number) => {
     const tile = grid[rowIndex][colIndex];
     
-    // If the tile already has a status, use that
+    // If the tile already has a status from user input, use that
     if (tile.status === "correct") return "bg-[#6aaa64] border-[#6aaa64] text-white";
     if (tile.status === "present") return "bg-[#c9b458] border-[#c9b458] text-white";
     if (tile.status === "absent") return "bg-[#787c7e] border-[#787c7e] text-white";
     
-    // If the row is the last row (solution), give it a special appearance
+    // Otherwise, simulate Wordle-style coloring based on position
+    // These patterns create a visually appealing puzzle appearance without spoiling the answers
+    
+    // Last row (solution row) - all correct
     if (puzzle?.hints && rowIndex === puzzle.hints.length - 1) {
-      return "bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-800";
+      return "bg-[#6aaa64] border-[#6aaa64]";
     }
     
-    // Otherwise, customize by row
-    switch (rowIndex) {
-      case 0: 
-        return "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50";
-      case 1: 
-        return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800/50";
-      case 2: 
-        return "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800/50";
-      case 3: 
-        return "bg-pink-50 border-pink-200 dark:bg-pink-900/20 dark:border-pink-800/50";
-      default:
-        return "bg-muted border-muted-foreground/30";
+    // For other rows, create a pattern based on position
+    // This simulates what the puzzle will look like when solved
+    // without giving away the actual answers
+    
+    // Pattern differs by row and column to create visual variety
+    if (rowIndex === 0) {
+      // First row pattern (3 correct, 2 present)
+      return colIndex % 2 === 0 ? "bg-[#6aaa64] border-[#6aaa64]" : "bg-[#c9b458] border-[#c9b458]";
+    } else if (rowIndex === 1) {
+      // Second row pattern (2 correct, 2 present, 1 absent)
+      if (colIndex === 0 || colIndex === 3) {
+        return "bg-[#6aaa64] border-[#6aaa64]";
+      } else if (colIndex === 1 || colIndex === 4) {
+        return "bg-[#c9b458] border-[#c9b458]";
+      } else {
+        return "bg-[#787c7e] border-[#787c7e]";
+      }
+    } else if (rowIndex === 2) {
+      // Third row pattern (1 correct, 3 present, 1 absent)
+      if (colIndex === 2) {
+        return "bg-[#6aaa64] border-[#6aaa64]";
+      } else if (colIndex === 0 || colIndex === 1 || colIndex === 4) {
+        return "bg-[#c9b458] border-[#c9b458]";
+      } else {
+        return "bg-[#787c7e] border-[#787c7e]";
+      }
+    } else if (rowIndex === 3) {
+      // Fourth row pattern (4 correct, 1 absent)
+      if (colIndex !== 1) {
+        return "bg-[#6aaa64] border-[#6aaa64]";
+      } else {
+        return "bg-[#787c7e] border-[#787c7e]";
+      }
+    } else {
+      // Default for any other rows
+      return "bg-muted border-muted-foreground/30";
     }
   };
 
@@ -139,7 +166,7 @@ export default function LetterGrid() {
               currentRow === rowIndex && currentCol === colIndex && !completedRows[rowIndex]
                 ? "border-4 border-primary"
                 : "border-2",
-              tile.letter !== "" ? "filled" : "",
+              tile.letter !== "" ? "filled" : "text-transparent", // Make empty letters transparent
               (tile.status === "correct" || tile.status === "present" || tile.status === "absent") 
                 ? "" // Let the status colors handle it
                 : getCellColor(rowIndex, colIndex), // Apply color by row when no status set
