@@ -27,16 +27,18 @@ interface GameContextProps {
   error: string | null;
   grid: Tile[][];
   currentRow: number | null;
+  currentCol: number | null;
   completedRows: boolean[];
   darkMode: boolean;
   setDarkMode: (value: boolean) => void;
-  selectRow: (rowIndex: number) => void;
+  selectCell: (rowIndex: number, colIndex: number) => void;
   updateTile: (row: number, col: number, letter: string) => void;
   checkRow: (rowIndex: number) => Promise<boolean>;
   isRowComplete: (rowIndex: number) => boolean;
   resetGame: () => void;
   checkAllRows: () => Promise<boolean>;
   gameCompleted: boolean;
+  findNextEmptyCell: () => [number, number] | null;
 }
 
 const GameContext = createContext<GameContextProps | undefined>(undefined);
@@ -49,6 +51,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     )
   );
   const [currentRow, setCurrentRow] = useState<number | null>(null);
+  const [currentCol, setCurrentCol] = useState<number | null>(null);
   const [completedRows, setCompletedRows] = useState<boolean[]>(Array(5).fill(false));
   const [darkMode, setDarkMode] = useState<boolean>(
     window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -98,11 +101,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [completedRows, puzzle]);
 
-  function selectRow(rowIndex: number) {
+  function selectCell(rowIndex: number, colIndex: number) {
     // Don't allow selection of completed rows
     if (completedRows[rowIndex]) return;
     
     setCurrentRow(rowIndex);
+    setCurrentCol(colIndex);
+  }
+  
+  function findNextEmptyCell(): [number, number] | null {
+    // Find the first empty cell in the grid
+    for (let row = 0; row < 5; row++) {
+      if (!completedRows[row]) {
+        for (let col = 0; col < 5; col++) {
+          if (grid[row][col].letter === "") {
+            return [row, col];
+          }
+        }
+      }
+    }
+    return null;
   }
 
   function updateTile(rowIndex: number, colIndex: number, letter: string) {
@@ -197,6 +215,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     
     // Reset game state
     setCurrentRow(null);
+    setCurrentCol(null);
     setCompletedRows(Array(5).fill(false));
     setGameCompleted(false);
   }
@@ -207,16 +226,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     error,
     grid,
     currentRow,
+    currentCol,
     completedRows,
     darkMode,
     setDarkMode,
-    selectRow,
+    selectCell,
     updateTile,
     checkRow,
     isRowComplete,
     resetGame,
     checkAllRows,
-    gameCompleted
+    gameCompleted,
+    findNextEmptyCell
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -63,6 +63,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!targetHint) {
         return res.status(404).json({ message: "Hint not found for row" });
       }
+
+      // Get the solution word (from the last row)
+      const solutionHint = activePuzzle.hints[activePuzzle.hints.length - 1];
+      const solution = solutionHint.answer.toUpperCase();
       
       const correctAnswer = targetHint.answer.toUpperCase();
       const userGuess = guess.toUpperCase();
@@ -70,10 +74,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isCorrect = userGuess === correctAnswer;
       
       // Create result with letter-by-letter feedback
+      // Special case: for the last row, compare against itself (solution)
+      // For other rows, compare against the solution for Wordle-style colors
       const result = Array(5).fill(null).map((_, index) => {
-        if (userGuess[index] === correctAnswer[index]) {
+        // Last row is always the solution and all letters should be correct
+        if (rowIndex === activePuzzle.hints.length - 1) {
+          return { letter: userGuess[index], status: userGuess[index] === correctAnswer[index] ? "correct" : "absent" };
+        } 
+        
+        // For all other rows, we check if the letter matches the solution
+        if (userGuess[index] === solution[index]) {
           return { letter: userGuess[index], status: "correct" };
-        } else if (correctAnswer.includes(userGuess[index])) {
+        } else if (solution.includes(userGuess[index])) {
           return { letter: userGuess[index], status: "present" };
         } else {
           return { letter: userGuess[index], status: "absent" };

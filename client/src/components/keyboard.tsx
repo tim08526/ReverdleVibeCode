@@ -3,7 +3,16 @@ import { Check, Delete } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Keyboard() {
-  const { currentRow, grid, updateTile, checkRow } = useGameContext();
+  const { 
+    currentRow, 
+    currentCol, 
+    grid, 
+    updateTile, 
+    checkRow, 
+    selectCell, 
+    findNextEmptyCell,
+    completedRows 
+  } = useGameContext();
   
   // Define keyboard rows
   const keyboardRows = [
@@ -40,26 +49,68 @@ export default function Keyboard() {
   };
 
   const handleKeyClick = (key: string) => {
-    if (currentRow === null) return;
-    
     if (key === "BACKSPACE") {
-      // Find the last filled column in the current row
-      for (let col = 4; col >= 0; col--) {
-        if (grid[currentRow][col].letter !== "") {
-          updateTile(currentRow, col, "");
-          break;
+      // If a cell is selected, clear that cell
+      if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
+        updateTile(currentRow, currentCol, "");
+        
+        // Move to previous column if possible
+        if (currentCol > 0) {
+          selectCell(currentRow, currentCol - 1);
+        }
+      } 
+      // Otherwise find the last filled cell
+      else {
+        for (let row = 0; row < 5; row++) {
+          if (!completedRows[row]) {
+            for (let col = 4; col >= 0; col--) {
+              if (grid[row][col].letter !== "") {
+                updateTile(row, col, "");
+                selectCell(row, col);
+                break;
+              }
+            }
+            break;
+          }
         }
       }
     } 
     else if (key === "ENTER") {
-      checkRow(currentRow);
+      // Check the current row if it's complete
+      if (currentRow !== null && !completedRows[currentRow]) {
+        checkRow(currentRow);
+      }
+      // Otherwise find a completed row to check
+      else {
+        for (let row = 0; row < 5; row++) {
+          if (!completedRows[row] && grid[row].every(tile => tile.letter !== "")) {
+            checkRow(row);
+            break;
+          }
+        }
+      }
     } 
     else {
-      // Find the first empty column in the current row
-      for (let col = 0; col < 5; col++) {
-        if (grid[currentRow][col].letter === "") {
-          updateTile(currentRow, col, key);
-          break;
+      // If a cell is selected, use that cell
+      if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
+        updateTile(currentRow, currentCol, key);
+        
+        // Auto-advance to next column in the same row if possible
+        if (currentCol < 4) {
+          selectCell(currentRow, currentCol + 1);
+        }
+      } 
+      // Otherwise find the first empty cell
+      else {
+        const nextEmptyCell = findNextEmptyCell();
+        if (nextEmptyCell) {
+          const [row, col] = nextEmptyCell;
+          updateTile(row, col, key);
+          
+          // Auto-advance to next column in the same row if possible
+          if (col < 4) {
+            selectCell(row, col + 1);
+          }
         }
       }
     }
