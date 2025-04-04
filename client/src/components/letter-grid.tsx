@@ -16,39 +16,36 @@ export default function LetterGrid() {
     puzzle
   } = useGameContext();
   
-  // Track which cells have animation
-  const [animatingTile, setAnimatingTile] = useState<[number, number] | null>(null);
-  
-  // Animation buffer to prevent overlapping animations
-  const [isAnimating, setIsAnimating] = useState(false);
+  // Track which cells are currently animating with a Map for better control
+  const [animatingTiles, setAnimatingTiles] = useState<Map<string, boolean>>(new Map());
 
   const handleTileClick = (row: number, col: number) => {
-    // Don't process clicks while animation is running
-    if (isAnimating) return;
-    
     // If the tile already has a letter and we're clicking on it,
     // let's add the pop animation for visual feedback
     if (grid[row][col].letter !== "") {
-      // Mark as animating to prevent overlapping animations
-      setIsAnimating(true);
-      
-      // Trigger animation
-      setAnimatingTile([row, col]);
+      // Add animation to this tile
+      setAnimatingTiles(prev => {
+        const newMap = new Map(prev);
+        newMap.set(`${row}-${col}`, true);
+        return newMap;
+      });
       
       // Remove animation after it completes
       setTimeout(() => {
-        setAnimatingTile(null);
-        setIsAnimating(false);
-      }, 200);
+        setAnimatingTiles(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(`${row}-${col}`);
+          return newMap;
+        });
+      }, 100); // Animation duration
     }
     
+    // Always select the cell immediately
     selectCell(row, col);
   };
 
   // Function to determine cell color based on the correct solution
   const getCellColor = (rowIndex: number, colIndex: number) => {
-    const tile = grid[rowIndex][colIndex];
-    
     // Last row (solution row) - all correct since it's the solution
     if (puzzle?.hints && rowIndex === puzzle.hints.length - 1) {
       return "bg-[#6aaa64] border-[#6aaa64]";
@@ -81,66 +78,73 @@ export default function LetterGrid() {
   // Function to handle keyboard input
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Handle letter input
-    if (e.key.match(/^[a-zA-Z]$/) && e.key.length === 1 && !isAnimating) {
-      // If animation is in progress, ignore this input to prevent overlapping animations
-      
+    if (e.key.match(/^[a-zA-Z]$/) && e.key.length === 1) {
       // If a cell is selected, use that cell
       if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
-        // Mark as animating to prevent new keystrokes
-        setIsAnimating(true);
+        const cellKey = `${currentRow}-${currentCol}`;
         
+        // Update the tile with the new letter
         updateTile(currentRow, currentCol, e.key.toUpperCase());
         
-        // Trigger animation on the tile
-        setAnimatingTile([currentRow, currentCol]);
+        // Add animation to this tile
+        setAnimatingTiles(prev => {
+          const newMap = new Map(prev);
+          newMap.set(cellKey, true);
+          return newMap;
+        });
         
-        // Remove animation after it completes and allow next input
+        // Remove animation after it completes
         setTimeout(() => {
-          setAnimatingTile(null);
-          setIsAnimating(false);
-        }, 100); // Animation takes 80ms
+          setAnimatingTiles(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(cellKey);
+            return newMap;
+          });
+        }, 100); // Animation duration
         
-        // Auto-advance to next column or next row after a short delay
-        setTimeout(() => {
-          if (currentCol < 4) {
-            // Move to next column in the same row
-            selectCell(currentRow, currentCol + 1);
-          } else if (currentRow < 4 && !completedRows[currentRow + 1]) {
-            // Move to the first column of the next row if we're at the end of a row
-            selectCell(currentRow + 1, 0);
-          }
-        }, 100); // Move cursor after animation is mostly done
+        // Immediately move to next column or next row
+        if (currentCol < 4) {
+          // Move to next column in the same row
+          selectCell(currentRow, currentCol + 1);
+        } else if (currentRow < 4 && !completedRows[currentRow + 1]) {
+          // Move to the first column of the next row if we're at the end of a row
+          selectCell(currentRow + 1, 0);
+        }
       } 
       // Otherwise find the first empty cell
       else {
         const nextEmptyCell = findNextEmptyCell();
         if (nextEmptyCell) {
           const [row, col] = nextEmptyCell;
+          const cellKey = `${row}-${col}`;
           
-          // Mark as animating to prevent new keystrokes
-          setIsAnimating(true);
-          
+          // Update the tile with the new letter
           updateTile(row, col, e.key.toUpperCase());
           
-          // Trigger animation on the tile
-          setAnimatingTile([row, col]);
+          // Add animation to this tile
+          setAnimatingTiles(prev => {
+            const newMap = new Map(prev);
+            newMap.set(cellKey, true);
+            return newMap;
+          });
           
-          // Remove animation after it completes and allow next input
+          // Remove animation after it completes
           setTimeout(() => {
-            setAnimatingTile(null);
-            setIsAnimating(false);
-          }, 100); // Animation takes 80ms
+            setAnimatingTiles(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(cellKey);
+              return newMap;
+            });
+          }, 100); // Animation duration
           
-          // Auto-advance to next column or next row after a short delay
-          setTimeout(() => {
-            if (col < 4) {
-              // Move to next column in the same row
-              selectCell(row, col + 1);
-            } else if (row < 4 && !completedRows[row + 1]) {
-              // Move to the first column of the next row if we're at the end of a row
-              selectCell(row + 1, 0);
-            }
-          }, 100); // Move cursor after animation is mostly done
+          // Immediately move to next column or next row
+          if (col < 4) {
+            // Move to next column in the same row
+            selectCell(row, col + 1);
+          } else if (row < 4 && !completedRows[row + 1]) {
+            // Move to the first column of the next row if we're at the end of a row
+            selectCell(row + 1, 0);
+          }
         }
       }
     }
@@ -187,7 +191,7 @@ export default function LetterGrid() {
         }
       }
     }
-  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell, setAnimatingTile, isAnimating, setIsAnimating]);
+  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell]);
 
   // Add keyboard event listener
   useEffect(() => {
@@ -216,7 +220,7 @@ export default function LetterGrid() {
               tile.status === "present" ? "bg-[#c9b458] border-[#c9b458] text-white" : "",
               tile.status === "absent" ? "bg-[#787c7e] border-[#787c7e] text-white" : "",
               // Add animation when a tile is being updated
-              animatingTile && animatingTile[0] === rowIndex && animatingTile[1] === colIndex ? "animate-pop" : ""
+              animatingTiles.has(`${rowIndex}-${colIndex}`) ? "animate-pop" : ""
             )}
             onClick={() => handleTileClick(rowIndex, colIndex)}
             data-row={rowIndex}
