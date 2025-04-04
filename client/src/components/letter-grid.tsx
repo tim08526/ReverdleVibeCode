@@ -98,7 +98,7 @@ export default function LetterGrid() {
         setTimeout(() => {
           setAnimatingTile(null);
           setIsAnimating(false);
-        }, 200); // Animation takes 150ms
+        }, 100); // Animation takes 80ms
         
         // Auto-advance to next column or next row after a short delay
         setTimeout(() => {
@@ -129,7 +129,7 @@ export default function LetterGrid() {
           setTimeout(() => {
             setAnimatingTile(null);
             setIsAnimating(false);
-          }, 200); // Animation takes 150ms
+          }, 100); // Animation takes 80ms
           
           // Auto-advance to next column or next row after a short delay
           setTimeout(() => {

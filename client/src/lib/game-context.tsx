@@ -175,11 +175,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
       
       // If the row is correct, mark it as completed
       if (data.isCorrect) {
-        setCompletedRows(prev => {
-          const newStatus = [...prev];
-          newStatus[rowIndex] = true;
-          return newStatus;
-        });
+        // Apply a small delay before marking as completed
+        // This gives time for any visual animations to complete
+        setTimeout(() => {
+          setCompletedRows(prev => {
+            const newStatus = [...prev];
+            newStatus[rowIndex] = true;
+            return newStatus;
+          });
+          
+          // If we've completed all rows except the last one, add a small delay
+          // then check if we should reveal the final answer row
+          const allRowsExceptLast = completedRows.slice(0, 4).every(status => status === true);
+          if (allRowsExceptLast && rowIndex === 4) {
+            setTimeout(() => {
+              setGameCompleted(true);
+            }, 500);
+          }
+          
+          // Select the first cell in the next incomplete row if available
+          if (rowIndex < 4 && !completedRows[rowIndex + 1]) {
+            selectCell(rowIndex + 1, 0);
+          }
+        }, 300);
       }
       
       return data.isCorrect;
