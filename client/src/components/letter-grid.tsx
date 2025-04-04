@@ -100,10 +100,14 @@ export default function LetterGrid() {
           setIsAnimating(false);
         }, 200); // Animation takes 150ms
         
-        // Auto-advance to next column after a short delay to allow animation to complete
+        // Auto-advance to next column or next row after a short delay
         setTimeout(() => {
           if (currentCol < 4) {
+            // Move to next column in the same row
             selectCell(currentRow, currentCol + 1);
+          } else if (currentRow < 4 && !completedRows[currentRow + 1]) {
+            // Move to the first column of the next row if we're at the end of a row
+            selectCell(currentRow + 1, 0);
           }
         }, 100); // Move cursor after animation is mostly done
       } 
@@ -127,10 +131,14 @@ export default function LetterGrid() {
             setIsAnimating(false);
           }, 200); // Animation takes 150ms
           
-          // Auto-advance to next column after a short delay
+          // Auto-advance to next column or next row after a short delay
           setTimeout(() => {
             if (col < 4) {
+              // Move to next column in the same row
               selectCell(row, col + 1);
+            } else if (row < 4 && !completedRows[row + 1]) {
+              // Move to the first column of the next row if we're at the end of a row
+              selectCell(row + 1, 0);
             }
           }, 100); // Move cursor after animation is mostly done
         }
