@@ -202,6 +202,72 @@ export default function LetterGrid() {
         }
       }
     }
+    // Handle arrow key navigation
+    else if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      // Only handle arrow keys if we have a selected cell
+      if (currentRow !== null && currentCol !== null) {
+        let newRow = currentRow;
+        let newCol = currentCol;
+        
+        switch (e.key) {
+          case "ArrowUp":
+            // Move up one row if possible
+            if (currentRow > 0) {
+              newRow = currentRow - 1;
+            }
+            break;
+          case "ArrowDown":
+            // Move down one row if possible
+            if (currentRow < 4) {
+              newRow = currentRow + 1;
+            }
+            break;
+          case "ArrowLeft":
+            // Move left one column if possible
+            if (currentCol > 0) {
+              newCol = currentCol - 1;
+            } 
+            // Wrap to the end of the previous row if at the start of a row
+            else if (currentRow > 0) {
+              newRow = currentRow - 1;
+              newCol = 4;
+            }
+            break;
+          case "ArrowRight":
+            // Move right one column if possible
+            if (currentCol < 4) {
+              newCol = currentCol + 1;
+            } 
+            // Wrap to the start of the next row if at the end of a row
+            else if (currentRow < 4) {
+              newRow = currentRow + 1;
+              newCol = 0;
+            }
+            break;
+        }
+        
+        // Don't move to completed rows
+        if (completedRows[newRow]) {
+          return;
+        }
+        
+        // Apply the new cell selection
+        if (newRow !== currentRow || newCol !== currentCol) {
+          selectCell(newRow, newCol);
+        }
+      } 
+      // If no cell is selected, select the first empty cell
+      else {
+        const nextEmptyCell = findNextEmptyCell();
+        if (nextEmptyCell) {
+          const [row, col] = nextEmptyCell;
+          selectCell(row, col);
+        }
+      }
+      
+      // Prevent arrow keys from scrolling the page
+      e.preventDefault();
+    }
   }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell]);
 
   // Add keyboard event listener
