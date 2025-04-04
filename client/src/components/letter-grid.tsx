@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useGameContext } from "@/lib/game-context";
 import { cn } from "@/lib/utils";
 import "@/lib/animations.css";
@@ -21,12 +21,29 @@ export default function LetterGrid() {
   
   // Animation buffer to prevent overlapping animations
   const [isAnimating, setIsAnimating] = useState(false);
-  
-  // Key buffer to store keys pressed during animation
-  const keyBufferRef = useRef<string[]>([]);
-  
-  // Need to use a ref for the function to avoid circular dependencies
-  const handleKeyInputRef = useRef<(key: string) => void>(() => {});
+
+  const handleTileClick = (row: number, col: number) => {
+    // Don't process clicks while animation is running
+    if (isAnimating) return;
+    
+    // If the tile already has a letter and we're clicking on it,
+    // let's add the pop animation for visual feedback
+    if (grid[row][col].letter !== "") {
+      // Mark as animating to prevent overlapping animations
+      setIsAnimating(true);
+      
+      // Trigger animation
+      setAnimatingTile([row, col]);
+      
+      // Remove animation after it completes
+      setTimeout(() => {
+        setAnimatingTile(null);
+        setIsAnimating(false);
+      }, 200);
+    }
+    
+    selectCell(row, col);
+  };
 
   // Function to determine cell color based on the correct solution
   const getCellColor = (rowIndex: number, colIndex: number) => {
@@ -61,51 +78,32 @@ export default function LetterGrid() {
     }
   };
 
-  // Process the next key from the buffer
-  const processBufferedKey = useCallback(() => {
-    if (keyBufferRef.current.length > 0) {
-      const nextKey = keyBufferRef.current.shift()!;
-      handleKeyInputRef.current(nextKey);
-    }
-  }, []);
-
-  // Set up the handler once all functions are defined
-  useEffect(() => {
-    // Function to handle a key input
-    handleKeyInputRef.current = (key: string) => {
-      // If already animating, add to buffer and return
-      if (isAnimating) {
-        // Only buffer up to 5 keys to prevent overflow
-        if (keyBufferRef.current.length < 5) {
-          keyBufferRef.current.push(key);
-        }
-        return;
-      }
-  
+  // Function to handle keyboard input
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Handle letter input
+    if (e.key.match(/^[a-zA-Z]$/) && e.key.length === 1 && !isAnimating) {
+      // If animation is in progress, ignore this input to prevent overlapping animations
+      
       // If a cell is selected, use that cell
       if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
         // Mark as animating to prevent new keystrokes
         setIsAnimating(true);
         
-        updateTile(currentRow, currentCol, key.toUpperCase());
+        updateTile(currentRow, currentCol, e.key.toUpperCase());
         
         // Trigger animation on the tile
         setAnimatingTile([currentRow, currentCol]);
         
-        // Save the current column to use in the timeout
-        const savedCol = currentCol;
-        
-        // Remove animation after it completes and process any buffered keys
+        // Remove animation after it completes and allow next input
         setTimeout(() => {
           setAnimatingTile(null);
           setIsAnimating(false);
-          processBufferedKey();
-        }, 200); // Animation takes 150ms, buffer for 200ms
+        }, 200); // Animation takes 150ms
         
-        // Auto-advance to next column after a short delay
+        // Auto-advance to next column after a short delay to allow animation to complete
         setTimeout(() => {
-          if (savedCol < 4) {
-            selectCell(currentRow, savedCol + 1);
+          if (currentCol < 4) {
+            selectCell(currentRow, currentCol + 1);
           }
         }, 100); // Move cursor after animation is mostly done
       } 
@@ -118,73 +116,25 @@ export default function LetterGrid() {
           // Mark as animating to prevent new keystrokes
           setIsAnimating(true);
           
-          updateTile(row, col, key.toUpperCase());
+          updateTile(row, col, e.key.toUpperCase());
           
           // Trigger animation on the tile
           setAnimatingTile([row, col]);
           
-          // Save the column to use in the timeout
-          const savedCol = col;
-          
-          // Remove animation after it completes and process any buffered keys
+          // Remove animation after it completes and allow next input
           setTimeout(() => {
             setAnimatingTile(null);
             setIsAnimating(false);
-            processBufferedKey();
-          }, 200); // Animation takes 150ms, buffer for 200ms
+          }, 200); // Animation takes 150ms
           
           // Auto-advance to next column after a short delay
           setTimeout(() => {
-            if (savedCol < 4) {
-              selectCell(row, savedCol + 1);
+            if (col < 4) {
+              selectCell(row, col + 1);
             }
           }, 100); // Move cursor after animation is mostly done
         }
       }
-    };
-  }, [
-    currentRow, 
-    currentCol, 
-    isAnimating, 
-    updateTile, 
-    setAnimatingTile, 
-    selectCell, 
-    completedRows,
-    findNextEmptyCell,
-    processBufferedKey
-  ]);
-
-  // Function to handle tile clicks
-  const handleTileClick = useCallback((row: number, col: number) => {
-    // Don't process clicks while animation is running
-    if (isAnimating) return;
-    
-    // If the tile already has a letter and we're clicking on it,
-    // let's add the pop animation for visual feedback
-    if (grid[row][col].letter !== "") {
-      // Mark as animating to prevent overlapping animations
-      setIsAnimating(true);
-      
-      // Trigger animation
-      setAnimatingTile([row, col]);
-      
-      // Remove animation after it completes
-      setTimeout(() => {
-        setAnimatingTile(null);
-        setIsAnimating(false);
-        // Process any buffered keys
-        processBufferedKey();
-      }, 200);
-    }
-    
-    selectCell(row, col);
-  }, [grid, isAnimating, setIsAnimating, setAnimatingTile, selectCell, processBufferedKey]);
-
-  // Function to handle keyboard input
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Handle letter input
-    if (e.key.match(/^[a-zA-Z]$/) && e.key.length === 1) {
-      handleKeyInputRef.current(e.key);
     }
     // Handle backspace
     else if (e.key === "Backspace") {
@@ -229,7 +179,7 @@ export default function LetterGrid() {
         }
       }
     }
-  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, selectCell]);
+  }, [currentRow, currentCol, grid, updateTile, checkRow, completedRows, findNextEmptyCell, selectCell, setAnimatingTile, isAnimating, setIsAnimating]);
 
   // Add keyboard event listener
   useEffect(() => {
