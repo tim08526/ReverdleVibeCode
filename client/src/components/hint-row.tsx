@@ -1,17 +1,12 @@
-import { useState } from "react";
 import { useGameContext } from "@/lib/game-context";
-import { Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Hint } from "@/lib/game-context";
 
 interface HintRowProps {
   hint: Hint;
-  showAll: boolean;
 }
 
-export default function HintRow({ hint, showAll }: HintRowProps) {
-  const [showHint, setShowHint] = useState(false);
+export default function HintRow({ hint }: HintRowProps) {
   const { currentRow, selectCell, completedRows, findNextEmptyCell } = useGameContext();
   
   const isActive = currentRow === hint.rowIndex;
@@ -38,21 +33,6 @@ export default function HintRow({ hint, showAll }: HintRowProps) {
     >
       <span className="hint-number font-bold">{hint.rowIndex + 1}:</span>
       <p className="hint-text flex-1 ml-2 text-sm">{hint.text}</p>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="hint-toggle text-xs px-2 py-1 rounded-full"
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowHint(!showHint);
-        }}
-      >
-        {showHint || showAll ? (
-          <EyeOff className="h-4 w-4" />
-        ) : (
-          <Eye className="h-4 w-4" />
-        )}
-      </Button>
     </div>
   );
 }
