@@ -152,14 +152,25 @@ export default function LetterGrid() {
     else if (e.key === "Backspace") {
       // If a cell is selected, clear that cell
       if (currentRow !== null && currentCol !== null && !completedRows[currentRow]) {
+        // First clear the current cell
         updateTile(currentRow, currentCol, "");
         
-        // Move to previous column if possible
-        if (currentCol > 0) {
+        // If we're at the first column of the row
+        if (currentCol === 0 && currentRow > 0) {
+          // Move to the last column of the previous row (if it's not completed)
+          if (!completedRows[currentRow - 1]) {
+            selectCell(currentRow - 1, 4);
+          } else {
+            // Stay in current position if previous row is completed
+            selectCell(currentRow, currentCol);
+          }
+        }
+        // Otherwise move to previous column
+        else if (currentCol > 0) {
           selectCell(currentRow, currentCol - 1);
         }
       } 
-      // Otherwise find the last filled cell
+      // If no cell is selected, find the last filled cell
       else {
         for (let row = 0; row < 5; row++) {
           if (!completedRows[row]) {
