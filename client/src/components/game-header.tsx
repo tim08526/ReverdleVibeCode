@@ -28,7 +28,7 @@ export default function GameHeader() {
           <span className="sr-only">Help</span>
         </Button>
         
-        <h1 className="text-2xl md:text-3xl font-bold tracking-wide">PUZZLE GRID</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-wide">REVERDLE</h1>
         
         <div className="flex items-center">
           <Button 

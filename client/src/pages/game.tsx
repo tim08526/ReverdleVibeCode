@@ -22,7 +22,7 @@ export default function Game() {
   useEffect(() => {
     // Show welcome toast
     toast({
-      title: "Welcome to Puzzle Grid!",
+      title: "Welcome to Reverdle!",
       description: "Complete the puzzle by filling each row with the word that matches its hint!",
       duration: 5000,
     });
