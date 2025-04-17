@@ -11,6 +11,7 @@ export default function Keyboard() {
     checkRow, 
     selectCell, 
     findNextEmptyCell,
+    checkAllRows,
     completedRows 
   } = useGameContext();
   
@@ -112,6 +113,10 @@ export default function Keyboard() {
             selectCell(row, col + 1);
           }
         }
+      }
+      // Check puzzle if all row are filled
+      if (completedRows.every(row => row)) {
+        checkAllRows()
       }
     }
   };
