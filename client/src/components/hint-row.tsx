@@ -1,4 +1,5 @@
 import { useGameContext } from "@/lib/game-context";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Hint } from "@/lib/game-context";
 
@@ -8,7 +9,7 @@ interface HintRowProps {
 
 export default function HintRow({ hint }: HintRowProps) {
   const { currentRow, selectCell, completedRows, findNextEmptyCell } = useGameContext();
-  
+
   const isActive = currentRow === hint.rowIndex;
   const isCompleted = completedRows[hint.rowIndex];
   
@@ -26,7 +27,7 @@ export default function HintRow({ hint }: HintRowProps) {
       className={cn(
         "hint-row mb-2 p-2 rounded-lg flex items-center justify-between cursor-pointer transition-colors",
         isActive ? "bg-blue-100 dark:bg-blue-900" : "bg-muted",
-        isCompleted ? "bg-green-100 dark:bg-green-900" : ""
+        isCompleted ? "bg-green-100 dark:bg-green-900" : "",
       )}
       onClick={handleClick}
       data-row={hint.rowIndex}

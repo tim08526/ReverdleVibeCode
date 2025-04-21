@@ -27,4 +27,11 @@ export const dailyHints: { text: string; answer: string }[][] = [
     { text: "ZIP, ZERO, ___", answer: "ZILCH" },
     { text: "Snowplow or wedge", answer: "PIZZA" },
   ],
+  [
+    { text: "Vowel checker", answer: "ADIEU" },
+    { text: "Cymbal sound", answer: "CRASH" },
+    { text: "All a___ !", answer: "BOARD" },
+    { text: "After strawberry or pimple", answer: "PATCH" },
+    { text: "Thing to avoid while driving", answer: "DITCH" },
+  ],
 ];
