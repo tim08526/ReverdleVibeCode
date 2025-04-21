@@ -34,6 +34,7 @@ interface GameContextProps {
   setDarkMode: (value: boolean) => void;
   selectCell: (rowIndex: number, colIndex: number) => void;
   updateTile: (row: number, col: number, letter: string) => void;
+  checkedRows: boolean[];
   checkRow: (rowIndex: number) => Promise<boolean>;
   isRowComplete: (rowIndex: number) => boolean;
   resetGame: () => void;
@@ -54,6 +55,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [currentRow, setCurrentRow] = useState<number | null>(null);
   const [currentCol, setCurrentCol] = useState<number | null>(null);
   const [completedRows, setCompletedRows] = useState<boolean[]>(Array(5).fill(false));
+
+  const [checkedRows, setCheckedRows] = useState<boolean[]>(Array(5).fill(false));
   const [darkMode, setDarkMode] = useState<boolean>(
     window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
   );
@@ -198,6 +201,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
             selectCell(rowIndex + 1, 0);
           }
         }, 300);
+      } else {
+        setTimeout(() => {
+          setCheckedRows(prev => {
+            const newStatus = [...prev];
+            newStatus[rowIndex] = true;
+            return newStatus;
+          });
+        }, 300);
+
+        setCheckedRows(prev => {
+          const newStatus = [...prev];
+          newStatus[rowIndex] = false;
+          return newStatus;
+        });
       }
       
       return data.isCorrect;
@@ -254,12 +271,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setDarkMode,
     selectCell,
     updateTile,
+    checkedRows,
     checkRow,
     isRowComplete,
     resetGame,
     checkAllRows,
     gameCompleted,
-    findNextEmptyCell
+    findNextEmptyCell,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
