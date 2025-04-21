@@ -9,9 +9,23 @@ interface HintRowProps {
 
 export default function HintRow({ hint }: HintRowProps) {
   const { currentRow, selectCell, completedRows, findNextEmptyCell } = useGameContext();
+  const [isShaking, setIsShaking] = useState(false);
 
   const isActive = currentRow === hint.rowIndex;
   const isCompleted = completedRows[hint.rowIndex];
+
+  useEffect(() => {
+    if (isShaking) {
+      const timer = setTimeout(() => setIsShaking(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isShaking]);
+
+  useEffect(() => {
+    if (!isCompleted && currentRow === hint.rowIndex) {
+      setIsShaking(true);
+    }
+  }, [currentRow, isCompleted]);
   
   const handleClick = () => {
     // Find the first empty cell in this row or use the first cell
@@ -28,6 +42,7 @@ export default function HintRow({ hint }: HintRowProps) {
         "hint-row mb-2 p-2 rounded-lg flex items-center justify-between cursor-pointer transition-colors",
         isActive ? "bg-blue-100 dark:bg-blue-900" : "bg-muted",
         isCompleted ? "bg-green-100 dark:bg-green-900" : "",
+        isShaking ? "animate-shake" : "",
       )}
       onClick={handleClick}
       data-row={hint.rowIndex}
