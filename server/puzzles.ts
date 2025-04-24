@@ -34,4 +34,11 @@ export const dailyHints: { text: string; answer: string }[][] = [
     { text: "After strawberry or pimple", answer: "PATCH" },
     { text: "Thing to avoid while driving", answer: "DITCH" },
   ],
+  [
+    { text: "You might chain these up for the winter", answer: "TIRES" },
+    { text: "___ grains", answer: "WHOLE" },
+    { text: "Shiny inside. Rough outside", answer: "GEODE" },
+    { text: "Something you might bring to a restaurant", answer: "BOOZE" },
+    { text: "It's actively healing", answer: "OZONE" },
+  ],
 ];
